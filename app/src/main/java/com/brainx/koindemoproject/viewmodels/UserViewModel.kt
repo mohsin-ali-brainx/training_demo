@@ -17,7 +17,8 @@ class UserViewModel(private val userRepository: UserRepository):ViewModel() {
     init {
         getUsers()
     }
-    fun getUsers(){
+
+   private fun getUsers(){
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.getUsers(){data,message,status->
                 if (status)
