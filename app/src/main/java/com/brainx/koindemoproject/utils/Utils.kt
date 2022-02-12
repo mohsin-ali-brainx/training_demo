@@ -1,6 +1,7 @@
 package com.brainx.koindemoproject.utils
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.view.View
 import android.webkit.URLUtil
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -83,4 +85,39 @@ fun ImageView.loadImage(
     } catch (ex: Exception) {
     }
 
+}
+
+fun View.beInvisibleIf(beInvisible: Boolean) = if (beInvisible) beInvisible() else beVisible()
+
+fun View.beVisibleIf(beVisible: Boolean) = if (beVisible) beVisible() else beGone()
+
+fun View.beGoneIf(beGone: Boolean) = beVisibleIf(!beGone)
+
+fun View.beInvisible() {
+    visibility = View.INVISIBLE
+}
+
+fun View.beVisible() {
+    visibility = View.VISIBLE
+}
+
+fun View.beGone() {
+    visibility = View.GONE
+}
+
+fun View.beVisibleOrGone(stats: Boolean) {
+    visibility = if (stats) View.VISIBLE else View.GONE
+}
+
+fun Activity.showToast(message: Any?) {
+    val messageString = when (message) {
+        is String -> message
+        is Int -> getString(message)
+        else -> null
+    }
+    if (messageString.isNullOrEmpty()) return
+    try {
+        Toast.makeText(this, messageString, Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+    }
 }

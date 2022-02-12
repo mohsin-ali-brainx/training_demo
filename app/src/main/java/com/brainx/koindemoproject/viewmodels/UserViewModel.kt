@@ -1,28 +1,48 @@
 package com.brainx.koindemoproject.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.brainx.koindemoproject.models.User
 import com.brainx.koindemoproject.repository.UserRepository
+import com.brainx.koindemoproject.ui.MainActivity
+import com.brainx.koindemoproject.viewIntent.MainActivityIntent
+import com.brainx.koindemoproject.viewState.MainActivityState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class UserViewModel(private val userRepository: UserRepository):ViewModel() {
-    private val _users = MutableLiveData<List<User>>()
-    val users: LiveData<List<User>>
-        get() = _users
+    val userIntent = Channel<MainActivityIntent>(Channel.UNLIMITED)
+    private val _state = MutableStateFlow<MainActivityState>(MainActivityState.Idle)
+    val state: StateFlow<MainActivityState>
+        get() = _state
 
     init {
-        getUsers()
+        handleIntent()
+    }
+
+    private fun handleIntent(){
+        viewModelScope.launch {
+            userIntent.consumeAsFlow().collect {
+                when(it){
+                    is MainActivityIntent.FetchUsers -> getUsers()
+                }
+            }
+        }
     }
 
    private fun getUsers(){
         viewModelScope.launch(Dispatchers.IO) {
+            _state.value = MainActivityState.Loading
             userRepository.getUsers(){data,message,status->
                 if (status)
-                    _users.postValue(data)
+                    _state.value = MainActivityState.Users(data)
+                else
+                    _state.value = MainActivityState.Error(message)
             }
         }
     }
